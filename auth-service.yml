@@ -1,0 +1,40 @@
+# ============================================================================
+# Configuración específica de auth-service
+# ============================================================================
+# Se mergea con application.yml (configuración común)
+# ============================================================================
+
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+spring:
+  application:
+    name: auth-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongo:27017/yanki_auth}
+      database: yanki_auth
+      auto-index-creation: true
+  kafka:
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:auth-service}
+
+yanki:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_USE_STRONG_RANDOM_KEY}
+      issuer: ${JWT_ISSUER:yanki-platform}
+      access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:1h}
+      refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:7d}
+  cache:
+    credential-ttl: ${CREDENTIAL_CACHE_TTL:15m}
+    key-prefix: "${CREDENTIAL_CACHE_KEY_PREFIX:yanki:auth:credential:}"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

@@ -1,0 +1,29 @@
+# ============================================================================
+# Configuración específica de wallet-service
+# ============================================================================
+server:
+  port: ${SERVER_PORT:8087}
+  shutdown: graceful
+
+spring:
+  application:
+    name: wallet-service
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://mongo:27017/yanki_wallet}
+      database: yanki_wallet
+      auto-index-creation: true
+  kafka:
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:wallet-service}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha

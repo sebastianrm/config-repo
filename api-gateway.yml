@@ -1,0 +1,171 @@
+# ============================================================================
+# Configuración específica de api-gateway
+# ============================================================================
+# Se mergea con application.yml (configuración común)
+# ============================================================================
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 10s
+      routes:
+        - id: auth-service-api
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: auth-service-login
+          uri: lb://auth-service
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: customers-service
+          uri: lb://customers-service
+          predicates:
+            - Path=/api/customers/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: accounts-service
+          uri: lb://accounts-service
+          predicates:
+            - Path=/api/accounts/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: credits-service
+          uri: lb://credits-service
+          predicates:
+            - Path=/api/credits/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: cards-service
+          uri: lb://cards-service
+          predicates:
+            - Path=/api/cards/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: transfers-service
+          uri: lb://transfers-service
+          predicates:
+            - Path=/api/transfers/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: wallet-service
+          uri: lb://wallet-service
+          predicates:
+            - Path=/api/wallets/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+        - id: reports-service
+          uri: lb://reports-service
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - StripPrefix=0
+            - name: CircuitBreaker
+              args:
+                name: default
+                fallbackUri: forward:/fallback/circuit-breaker
+
+yanki:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_USE_STRONG_RANDOM_KEY}
+      issuer: ${JWT_ISSUER:yanki-platform}
+      expiration: ${JWT_EXPIRATION:1h}
+      max-lifetime-grace: ${JWT_MAX_LIFETIME_GRACE:5m}
+    public-paths:
+      - /api/auth/**
+      - /auth/**
+      - /actuator/**
+      - /v3/api-docs/**
+      - /swagger-ui/**
+      - /swagger-ui.html
+      - /fallback/**
+  gateway:
+    cors:
+      allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:4200}
+      allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+      allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+      exposed-headers: ${CORS_EXPOSED_HEADERS:}
+      allow-credentials: ${CORS_ALLOW_CREDENTIALS:false}
+      max-age: ${CORS_MAX_AGE:1h}
+
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 10s
+        cancelRunningFuture: true
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.yanki: INFO
+    org.springframework.cloud.gateway: INFO

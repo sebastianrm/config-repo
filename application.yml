@@ -1,0 +1,85 @@
+# ============================================================================
+# Configuración común para todos los microservicios Yanki Platform
+# ============================================================================
+# Este archivo contiene la configuración compartida por todos los servicios.
+# Los secretos sensibles DEBEN ser sobrescritos por variables de entorno.
+# ============================================================================
+
+# ---------------------------------------------------------------------------
+# Infraestructura compartida
+# ---------------------------------------------------------------------------
+spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+      repositories:
+        enabled: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
+        spring.json.trusted.packages: com.yanki.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  cloud:
+    config:
+      fail-fast: false
+
+# ---------------------------------------------------------------------------
+# Eureka / Discovery
+# ---------------------------------------------------------------------------
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://discovery-service:8761/eureka/}
+    fetch-registry: true
+    register-with-eureka: true
+  instance:
+    prefer-ip-address: true
+
+# ---------------------------------------------------------------------------
+# Actuator / Health
+# ---------------------------------------------------------------------------
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+
+# ---------------------------------------------------------------------------
+# Logging común
+# ---------------------------------------------------------------------------
+logging:
+  level:
+    com.yanki: INFO
+    org.apache.kafka.clients: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ---------------------------------------------------------------------------
+# Seguridad JWT - UNIFICADO para toda la plataforma
+# IMPORTANTE: El secreto DEBE ser sobrescrito por variable de entorno en producción.
+# ---------------------------------------------------------------------------
+yanki:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:CHANGE_ME_IN_PRODUCTION_USE_STRONG_RANDOM_KEY}
+      issuer: ${JWT_ISSUER:yanki-platform}
+      expiration: ${JWT_EXPIRATION:1h}
+      max-lifetime-grace: ${JWT_MAX_LIFETIME_GRACE:5m}
+  auth:
+    password:
+      secret: ${PASSWORD_SECRET:CHANGE_ME_IN_PRODUCTION_USE_STRONG_RANDOM_KEY}
