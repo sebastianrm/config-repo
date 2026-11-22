@@ -158,6 +158,8 @@ management:
       exposure:
         include: health,info,gateway,metrics
   endpoint:
+    gateway:
+      enabled: true
     health:
       show-details: always
 
